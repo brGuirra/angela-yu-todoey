@@ -13,6 +13,12 @@ class TodoListViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let defaults = UserDefaults.standard
+        
+        if let savedTasks = defaults.array(forKey: "tasks") as? [String] {
+            tasks = savedTasks
+        }
     }
 
     //MARK: - TableView DataSource Methods
@@ -55,6 +61,10 @@ class TodoListViewController: UITableViewController {
              guard let newTask = ac.textFields?[0].text else { return }
              
              self?.tasks.append(newTask)
+             
+             let defaults = UserDefaults.standard
+             defaults.set(self?.tasks, forKey: "tasks")
+             
              self?.tableView.reloadData()
          }))
          
