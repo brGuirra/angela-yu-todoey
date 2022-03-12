@@ -9,7 +9,7 @@
 import UIKit
 
 class TodoListViewController: UITableViewController {
-    let tasks = ["Find Mike", "Buy Eggos", "Destroy Demogorgon"]
+    var tasks = ["Find Mike", "Buy Eggos", "Destroy Demogorgon"]
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -38,8 +38,27 @@ class TodoListViewController: UITableViewController {
         } else {
             tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
         }
-//
+        
         tableView.deselectRow(at: indexPath, animated: true)
+    }
+    
+    //MARK: - Add New Items    
+    
+     @IBAction func addTaksPressed(_ sender: UIBarButtonItem) {
+         let ac = UIAlertController(title: "Add a task", message: nil, preferredStyle: .alert)
+         
+         ac.addTextField { (textField) in
+             textField.placeholder = "Create new item"
+         }
+         
+         ac.addAction(UIAlertAction(title: "Add item", style: .default, handler: { [weak self] (action) in
+             guard let newTask = ac.textFields?[0].text else { return }
+             
+             self?.tasks.append(newTask)
+             self?.tableView.reloadData()
+         }))
+         
+         present(ac, animated: true)
     }
 }
 
