@@ -9,15 +9,24 @@
 import UIKit
 
 class TodoListViewController: UITableViewController {
-    var tasks = ["Find Mike", "Buy Eggos", "Destroy Demogorgon"]
+    var tasks: [Task] = []
+    
+    let userDefaultKey = "tasks"
+    
+    let defaults = UserDefaults.standard
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let defaults = UserDefaults.standard
-        
-        if let savedTasks = defaults.array(forKey: "tasks") as? [String] {
-            tasks = savedTasks
+        if let savedTasks = defaults.object(forKey: userDefaultKey) as? Data {
+            let decoder = JSONDecoder()
+          
+            do {
+                tasks = try decoder.decode([Task].self, from: savedTasks)
+            } catch {
+                print("Failed retrieving saved tasks.")
+            }
+           
         }
     }
 
@@ -31,7 +40,7 @@ class TodoListViewController: UITableViewController {
         let task = tasks[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
         
-        cell.textLabel?.text = task
+        cell.textLabel?.text = task.title
         
         return cell
     }
@@ -58,17 +67,27 @@ class TodoListViewController: UITableViewController {
          }
          
          ac.addAction(UIAlertAction(title: "Add item", style: .default, handler: { [weak self] (action) in
-             guard let newTask = ac.textFields?[0].text else { return }
+             guard let taskTitle = ac.textFields?[0].text else { return }
              
+             let newTask = Task(title: taskTitle)
              self?.tasks.append(newTask)
              
-             let defaults = UserDefaults.standard
-             defaults.set(self?.tasks, forKey: "tasks")
+             self?.saveTask()
              
              self?.tableView.reloadData()
          }))
          
          present(ac, animated: true)
+    }
+    
+    func saveTask() {
+        let enconder = JSONEncoder()
+        
+        if let savedTasks = try? enconder.encode(tasks) {
+            defaults.set(savedTasks, forKey: userDefaultKey)
+        } else {
+            print("Failed to save tasks.")
+        }
     }
 }
 
