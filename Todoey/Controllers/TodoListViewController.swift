@@ -13,21 +13,14 @@ class TodoListViewController: UITableViewController {
     
     let userDefaultKey = "tasks"
     
-    let defaults = UserDefaults.standard
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Tasks.plist")
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if let savedTasks = defaults.object(forKey: userDefaultKey) as? Data {
-            let decoder = JSONDecoder()
-          
-            do {
-                tasks = try decoder.decode([Task].self, from: savedTasks)
-            } catch {
-                print("Failed retrieving saved tasks.")
-            }
-           
-        }
+        print(dataFilePath! )
+      
+        loadTasks()
     }
 
     //MARK: - TableView DataSource Methods
@@ -41,6 +34,7 @@ class TodoListViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
         
         cell.textLabel?.text = task.title
+        cell.accessoryType =  task.done ? .checkmark : .none
         
         return cell
     }
@@ -51,6 +45,8 @@ class TodoListViewController: UITableViewController {
         let currentIndex = indexPath.row
         
         tasks[currentIndex].done.toggle()
+        
+        saveTasks()
         
         tableView.cellForRow(at: indexPath)?.accessoryType =  tasks[currentIndex].done ? .checkmark : .none
         
@@ -72,7 +68,7 @@ class TodoListViewController: UITableViewController {
              let newTask = Task(title: taskTitle)
              self?.tasks.append(newTask)
              
-             self?.saveTask()
+             self?.saveTasks()
              
              self?.tableView.reloadData()
          }))
@@ -80,13 +76,33 @@ class TodoListViewController: UITableViewController {
          present(ac, animated: true)
     }
     
-    func saveTask() {
-        let enconder = JSONEncoder()
+    //MARK: - Model Manipulation Methods
+    
+    func saveTasks() {
+        guard let dataFilePath = dataFilePath else { return }
+        let enconder = PropertyListEncoder()
         
-        if let savedTasks = try? enconder.encode(tasks) {
-            defaults.set(savedTasks, forKey: userDefaultKey)
-        } else {
-            print("Failed to save tasks.")
+        do {
+            let savedTasks = try enconder.encode(tasks)
+            try savedTasks.write(to: dataFilePath)
+        } catch {
+            print("Failed saving tasks: \(error)")
+        }
+    }
+    
+    func loadTasks() {
+        guard let dataFilePath = dataFilePath else { return }
+        
+        if let data = try? Data(contentsOf: dataFilePath) {
+            print("passou aqui")
+            
+            let decoder = PropertyListDecoder()
+            
+            do {
+                tasks = try decoder.decode([Task].self, from: data)
+            } catch {
+                print("Failed loading tasks: \(error)")
+            }
         }
     }
 }
