@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 class TodoListViewController: UITableViewController {
     var tasks: [Task] = []
@@ -15,12 +16,10 @@ class TodoListViewController: UITableViewController {
     
     let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Tasks.plist")
     
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        print(dataFilePath! )
-      
-        loadTasks()
     }
 
     //MARK: - TableView DataSource Methods
@@ -63,14 +62,17 @@ class TodoListViewController: UITableViewController {
          }
          
          ac.addAction(UIAlertAction(title: "Add item", style: .default, handler: { [weak self] (action) in
+             guard let self = self else { return }
              guard let taskTitle = ac.textFields?[0].text else { return }
              
-             let newTask = Task(title: taskTitle)
-             self?.tasks.append(newTask)
+             let newTask = Task(context: self.context)
+             newTask.title = taskTitle
+             newTask.done = false
+             self.tasks.append(newTask)
              
-             self?.saveTasks()
+             self.saveTasks()
              
-             self?.tableView.reloadData()
+             self.tableView.reloadData()
          }))
          
          present(ac, animated: true)
@@ -79,30 +81,10 @@ class TodoListViewController: UITableViewController {
     //MARK: - Model Manipulation Methods
     
     func saveTasks() {
-        guard let dataFilePath = dataFilePath else { return }
-        let enconder = PropertyListEncoder()
-        
         do {
-            let savedTasks = try enconder.encode(tasks)
-            try savedTasks.write(to: dataFilePath)
+            try context.save()
         } catch {
-            print("Failed saving tasks: \(error)")
-        }
-    }
-    
-    func loadTasks() {
-        guard let dataFilePath = dataFilePath else { return }
-        
-        if let data = try? Data(contentsOf: dataFilePath) {
-            print("passou aqui")
-            
-            let decoder = PropertyListDecoder()
-            
-            do {
-                tasks = try decoder.decode([Task].self, from: data)
-            } catch {
-                print("Failed loading tasks: \(error)")
-            }
+            print("Error saving context: \(error)")
         }
     }
 }
