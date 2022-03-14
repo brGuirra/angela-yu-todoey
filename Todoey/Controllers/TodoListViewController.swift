@@ -20,6 +20,8 @@ class TodoListViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+    
+        loadTasks()
     }
 
     //MARK: - TableView DataSource Methods
@@ -85,6 +87,16 @@ class TodoListViewController: UITableViewController {
             try context.save()
         } catch {
             print("Error saving context: \(error)")
+        }
+    }
+    
+    func loadTasks() {
+        let request : NSFetchRequest<Task> = Task.fetchRequest()
+        
+        do {
+           tasks =  try context.fetch(request)
+        } catch {
+            print("Error fetching tasks from context: \(error)")
         }
     }
 }
