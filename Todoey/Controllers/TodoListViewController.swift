@@ -10,6 +10,8 @@ import UIKit
 import CoreData
 
 class TodoListViewController: UITableViewController {
+    @IBOutlet weak var searchBar: UISearchBar!
+    
     var tasks: [Task] = []
     
     let userDefaultKey = "tasks"
@@ -20,6 +22,8 @@ class TodoListViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        searchBar.delegate = self
     
         loadTasks()
     }
@@ -90,13 +94,28 @@ class TodoListViewController: UITableViewController {
         }
     }
     
-    func loadTasks() {
-        let request : NSFetchRequest<Task> = Task.fetchRequest()
-        
+    func loadTasks(with request: NSFetchRequest<Task> = Task.fetchRequest()) {
         do {
            tasks =  try context.fetch(request)
         } catch {
             print("Error fetching tasks from context: \(error)")
+        }
+    }
+}
+
+//MARK: - UISearchBar Delegate
+
+extension TodoListViewController: UISearchBarDelegate {
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        if let value = searchBar.text {
+            let request: NSFetchRequest<Task> = Task.fetchRequest()
+            request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", value)
+            request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+            
+            loadTasks(with: request)
+            
+            tableView.reloadData()
         }
     }
 }
