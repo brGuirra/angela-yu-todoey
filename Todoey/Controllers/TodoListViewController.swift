@@ -14,10 +14,6 @@ class TodoListViewController: UITableViewController {
     
     var tasks: [Task] = []
     
-    let userDefaultKey = "tasks"
-    
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Tasks.plist")
-    
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
@@ -36,7 +32,7 @@ class TodoListViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let task = tasks[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoTaskCell", for: indexPath)
         
         cell.textLabel?.text = task.title
         cell.accessoryType =  task.done ? .checkmark : .none
@@ -58,13 +54,13 @@ class TodoListViewController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
-    //MARK: - Add New Items    
+    //MARK: - Add New Task
     
      @IBAction func addTaksPressed(_ sender: UIBarButtonItem) {
          let ac = UIAlertController(title: "Add a task", message: nil, preferredStyle: .alert)
          
          ac.addTextField { (textField) in
-             textField.placeholder = "Create new item"
+             textField.placeholder = "Create new task"
          }
          
          ac.addAction(UIAlertAction(title: "Add item", style: .default, handler: { [weak self] (action) in
@@ -90,7 +86,7 @@ class TodoListViewController: UITableViewController {
         do {
             try context.save()
         } catch {
-            print("Error saving context: \(error)")
+            print("Error saving tasks: \(error)")
         }
     }
     
@@ -98,7 +94,7 @@ class TodoListViewController: UITableViewController {
         do {
            tasks =  try context.fetch(request)
         } catch {
-            print("Error fetching tasks from context: \(error)")
+            print("Error fetching tasks: \(error)")
         }
     }
 }
