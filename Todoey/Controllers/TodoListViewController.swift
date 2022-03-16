@@ -14,14 +14,20 @@ class TodoListViewController: UITableViewController {
     
     var tasks: [Task] = []
     
+    var selectedCategory: Category? {
+        didSet {
+            loadTasks()
+        }
+    }
+    
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        navigationController?.navigationBar.tintColor = .white
+        
         searchBar.delegate = self
-    
-        loadTasks()
     }
 
     //MARK: - TableView DataSource Methods
@@ -70,6 +76,7 @@ class TodoListViewController: UITableViewController {
              let newTask = Task(context: self.context)
              newTask.title = taskTitle
              newTask.done = false
+             newTask.parentCategory = self.selectedCategory
              self.tasks.append(newTask)
              
              self.saveTasks()
@@ -90,7 +97,20 @@ class TodoListViewController: UITableViewController {
         }
     }
     
-    func loadTasks(with request: NSFetchRequest<Task> = Task.fetchRequest()) {
+    func loadTasks(with request: NSFetchRequest<Task> = Task.fetchRequest(), predicate: NSPredicate? = nil) {
+        guard let categoryName = selectedCategory?.name else {
+            return
+        }
+        
+        
+        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", categoryName)
+        
+        if let aditionalPredicate = predicate {
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, aditionalPredicate])
+        } else {
+            request.predicate = categoryPredicate
+        }
+        
         do {
            tasks =  try context.fetch(request)
         } catch {
@@ -106,10 +126,11 @@ extension TodoListViewController: UISearchBarDelegate {
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         if let value = searchBar.text {
             let request: NSFetchRequest<Task> = Task.fetchRequest()
-            request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", value)
+            let predicate = NSPredicate(format: "title CONTAINS[cd] %@", value)
+            
             request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
             
-            loadTasks(with: request)
+            loadTasks(with: request, predicate: predicate)
             
             tableView.reloadData()
         }
