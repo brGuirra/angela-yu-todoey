@@ -12,4 +12,7 @@ import RealmSwift
 class Task: Object {
     @Persisted var title: String = ""
     @Persisted var done: Bool = false
+    
+    // Inverse relationship
+    @Persisted(originProperty: "tasks") var parentCategory: LinkingObjects<Category>
 }
