@@ -18,7 +18,7 @@ class TodoListViewController: UITableViewController {
 
     var selectedCategory: Category? {
         didSet {
-            loadTasks()
+            load()
         }
     }
 
@@ -58,14 +58,10 @@ class TodoListViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let currentIndex = indexPath.row
         
-        if let tasks = tasks {
-            tasks[currentIndex].done.toggle()
+        if let task = tasks?[currentIndex] {
+            update(task)
             
-            save(task: nil)
-            
-            tableView.cellForRow(at: indexPath)?.accessoryType =  tasks[currentIndex].done ? .checkmark : .none
-            
-            tableView.deselectRow(at: indexPath, animated: true)
+            tableView.reloadData()
         }
     }
 
@@ -109,8 +105,18 @@ class TodoListViewController: UITableViewController {
         }
     }
 
-    func loadTasks() {
+    func load() {
         tasks = selectedCategory?.tasks.sorted(byKeyPath: "title", ascending: true)
+    }
+    
+    func update(_ task: Task) {
+        do {
+            try realm.write {
+                task.done.toggle()
+            }
+        } catch {
+            print("Error updating done status: \(error)")
+        }
     }
 }
 
@@ -133,7 +139,7 @@ extension TodoListViewController: UISearchBarDelegate {
 
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchBar.text?.count == 0 {
-            loadTasks()
+            load()
 
             tableView.reloadData()
 
