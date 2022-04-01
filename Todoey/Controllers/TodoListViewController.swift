@@ -26,8 +26,6 @@ class TodoListViewController: UITableViewController {
         super.viewDidLoad()
 
         navigationController?.navigationBar.tintColor = .white
-
-        print(realm.configuration.fileURL!)
         
         searchBar.delegate = self
     }
@@ -81,6 +79,7 @@ class TodoListViewController: UITableViewController {
              
              let newTask = Task()
              newTask.title = taskTitle
+             newTask.createdAt = Date()
              
              self.save(task: newTask)
              
@@ -125,16 +124,11 @@ class TodoListViewController: UITableViewController {
 extension TodoListViewController: UISearchBarDelegate {
 
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-//        if let value = searchBar.text {
-//            let request: NSFetchRequest<Task> = Task.fetchRequest()
-//            let predicate = NSPredicate(format: "title CONTAINS[cd] %@", value)
-//
-//            request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-//
-//            loadTasks(with: request, predicate: predicate)
-//
-//            tableView.reloadData()
-//        }
+        if let value = searchBar.text {
+            tasks = tasks?.filter("title CONTAINS[cd] %@", value).sorted(byKeyPath: "createdAt", ascending: true)
+
+            tableView.reloadData()
+        }
     }
 
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {

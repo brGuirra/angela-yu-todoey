@@ -19,6 +19,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         let realm = try! Realm()
         
+        print(realm.configuration.fileURL!)
+        
         return true
     }
 
