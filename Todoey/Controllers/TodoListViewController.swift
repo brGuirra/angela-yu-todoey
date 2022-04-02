@@ -9,7 +9,7 @@
 import UIKit
 import RealmSwift
 
-class TodoListViewController: UITableViewController {
+class TodoListViewController: SwipeTableViewController {
     @IBOutlet weak var searchBar: UISearchBar!
     
     let realm = try! Realm()
@@ -27,6 +27,8 @@ class TodoListViewController: UITableViewController {
 
         navigationController?.navigationBar.tintColor = .white
         
+        tableView.rowHeight = 80
+        
         searchBar.delegate = self
     }
 
@@ -37,7 +39,7 @@ class TodoListViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoTaskCell", for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         if let tasks = tasks {
             let task = tasks[indexPath.row]
@@ -92,7 +94,7 @@ class TodoListViewController: UITableViewController {
 
     //MARK: - Model Manipulation Methods
 
-    func save(task: Task?) {
+    private func save(task: Task?) {
         if let task = task, let category = selectedCategory {
             do {
                 try realm.write({
@@ -104,17 +106,33 @@ class TodoListViewController: UITableViewController {
         }
     }
 
-    func load() {
+    private func load() {
         tasks = selectedCategory?.tasks.sorted(byKeyPath: "title", ascending: true)
     }
     
-    func update(_ task: Task) {
+    private func update(_ task: Task) {
         do {
             try realm.write {
                 task.done.toggle()
             }
         } catch {
             print("Error updating done status: \(error)")
+        }
+    }
+    
+    private func delete(_ task: Task) {
+        do {
+            try realm.write({
+                realm.delete(task)
+            })
+        } catch {
+            print("Error deleting task: \(error)")
+        }
+    }
+    
+    override func updateModel(up indexPath: IndexPath) {
+        if let task = tasks?[indexPath.row] {
+            delete(task)
         }
     }
 }

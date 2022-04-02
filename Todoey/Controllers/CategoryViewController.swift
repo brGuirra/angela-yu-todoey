@@ -20,7 +20,7 @@ class CategoryViewController: SwipeTableViewController {
         
         tableView.rowHeight = 80
         
-        loadCategories()
+        load()
     }
     
     @IBAction func addCategoryPressed(_ sender: UIBarButtonItem) {
@@ -76,7 +76,7 @@ class CategoryViewController: SwipeTableViewController {
     
     //MARK: - Data Manipulation Methods
     
-    func save(category: Category) {
+    private func save(category: Category) {
         do {
             try realm.write({
                 realm.add(category)
@@ -86,11 +86,11 @@ class CategoryViewController: SwipeTableViewController {
         }
     }
     
-    func loadCategories() {
+    private func load() {
         categories = realm.objects(Category.self)
     }
     
-    func deleteCategory(_ category: Category) {
+    private func delete(_ category: Category) {
         do {
             try realm.write({
                 realm.delete(category)
@@ -102,7 +102,7 @@ class CategoryViewController: SwipeTableViewController {
     
     override func updateModel(up indexPath: IndexPath) {
         if let category = categories?[indexPath.row] {
-            deleteCategory(category)
+            delete(category)
         }
     }
 }
