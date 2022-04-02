@@ -17,14 +17,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
-        let realm = try! Realm()
+        // print(Realm.configuration.defaultConfiguration.fileURL!)
         
-        print(realm.configuration.fileURL!)
+        _ = try! Realm()
         
         return true
-    }
-
-    func applicationWillTerminate(_ application: UIApplication) {
     }
 }
 
